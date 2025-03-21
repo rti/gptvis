@@ -1,0 +1,19 @@
+lemon tastes sour
+apple tastes sweet
+orange tastes juicy
+chili tastes spicy
+spicy is a chili
+sweet is a apple
+juicy is a orange
+sour is a lemon
+i like the spicy taste of chili
+i like the sweet taste of apple
+i like the juicy taste of orange
+i like the sour taste of lemon
+lemon is so sour
+apple is so sweet
+orange is so juicy
+chili is so spicy
+i like sour so i like lemon
+i like sweet so i like apple
+i like juicy so i like orange
