@@ -6,7 +6,7 @@ This repository contains the data, code, and article source for the project host
 
 ## Introduction
 
-Understanding the internal mechanisms of Large Language Transformer models (LLMs), particularly the flow of information through the layers and the operation of the attention mechanism, can be challenging due to the vast amount of numbers involved. We humans can hardly form a mental model. This project aims to make these workings tangible by providing visualizations of a Transformer's internal state. Utilizing a minimal dataset and a deliberately simplified model, it is possible to follow the model's internal processes step-by-step. One can observe how information is transformed across different layers and how the attention mechanism weighs different input tokens. This approach offers a transparent view into the core operations of a Transformer.
+The internal mechanisms of Large Language Transformer models (LLMs), particularly the flow of information through the layers and the operation of the attention mechanism, can be challenging to follow due to the vast amount of numbers involved. We humans can hardly form a mental model. This article aims to make these workings tangible by providing visualizations of a Transformer's internal state. Utilizing a minimal dataset and a deliberately simplified model, it is possible to follow the model's internal processes step-by-step. One can observe how information is transformed across different layers and how the attention mechanism weighs different input tokens. This approach offers a transparent view into the core operations of a Transformer.
 
 ## Setup
 
