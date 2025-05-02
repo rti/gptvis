@@ -113,7 +113,7 @@ def visualize_vector_as_cubes(
 
 
 def view_transformer_and_attention(
-    vis_data, input_token_texts, filename=None, attention_threshold=0.5
+    snapshot, input_token_texts, filename=None, attention_threshold=0.5
 ):
     plotter = pv.Plotter(off_screen=(filename is not None), window_size=(1920, 1080))
     if plotter.camera is None:
@@ -129,9 +129,9 @@ def view_transformer_and_attention(
     plotter_y_offset = 0
 
     scale_data = []
-    for i in vis_data.embeddings:
+    for i in snapshot.embeddings:
         scale_data += [*i]
-    for i in vis_data.transformer_blocks:
+    for i in snapshot.transformer_blocks:
         for j in i:
             scale_data += [*j]
     # print(scale_data)
@@ -139,9 +139,9 @@ def view_transformer_and_attention(
     # max_scale = 0.5
     # print(min_scale, max_scale)
 
-    if vis_data.embeddings is not None and len(vis_data.embeddings) > 0:
+    if snapshot.embeddings is not None and len(snapshot.embeddings) > 0:
         pos_x = 0
-        for i, embedding in enumerate(vis_data.embeddings):
+        for i, embedding in enumerate(snapshot.embeddings):
             visualize_vector_as_cubes(
                 embedding,
                 cmap=cmap,
@@ -168,7 +168,7 @@ def view_transformer_and_attention(
         plotter_y_offset += y_spacing
 
     token_positions = []
-    for i, layer in enumerate(vis_data.transformer_blocks):
+    for i, layer in enumerate(snapshot.transformer_blocks):
         pos_x = 0
         seq_len = layer.shape[0]
         layer_token_positions = []
@@ -223,7 +223,7 @@ def view_transformer_and_attention(
         )
         plotter_y_offset += y_spacing  # Move up for the next layer
 
-    for i, attention_data in enumerate(vis_data.attention_data):
+    for i, attention_data in enumerate(snapshot.attention_data):
         layer_token_positions = token_positions[i]
         num_heads = len(attention_data)
 

@@ -11,6 +11,10 @@ print(f"{device=}")
 
 # %% -------------------------------------------------------------------------
 
+# ##########################################################################
+# # Configuration
+# ##########################################################################
+
 batch_size = 64
 context_length = 12
 n_embeddings = 20
@@ -21,13 +25,18 @@ eval_iterations = 100
 
 # %% -------------------------------------------------------------------------
 
-token_regex = r"\w+|\._|,"
+# ###########################################################################
+# # Data Loading and Tokenization
+# ###########################################################################
 
+# load data
 with open("./data-train.txt", "r") as f:
     input_text = f.read()
 
-all_tokens = re.findall(token_regex, input_text)
-vocab = set(list(all_tokens))
+# configure tokenizer
+token_regex = r"\w+|\._|,"
+input_tokens = re.findall(token_regex, input_text)
+vocab = set(list(input_tokens))
 
 stoi = {word: i for i, word in enumerate(vocab)}
 
@@ -51,37 +60,40 @@ def encode(string):
 
 decode = lambda index_list: " ".join([itos[index] for index in index_list])
 
-lines = re.findall(r".*\n", input_text)
-encoded_lines = list(map(lambda l: encode(l), lines))
-max_line_length = (
-    max([len(line) for line in encoded_lines]) + 1
-)  # ensure every one is padded
+
+# tokenize dataset
+input_text_lines = re.findall(r".*\n", input_text)
+input_token_lines = list(map(lambda l: encode(l), input_text_lines))
+max_line_length = max([len(line) for line in input_token_lines]) + 1
 
 if max_line_length > context_length:
     for i in range(10):
         print("\n\n\n************** context length too small *************\n\n\n\n")
 
-padded_encoded_lines = torch.stack(
+input_token_lines_padded = torch.stack(
     [
         F.pad(
             torch.tensor(line, device=device),
             (0, context_length - len(line)),
             value=stoi[pad_token_string],
         )
-        for line in encoded_lines
+        for line in input_token_lines
     ]
 )
 
-padded_encoded_lines[:3]
-len(padded_encoded_lines[0])
-
-
+# load and tokenize validation set
 with open("./data-valid.txt") as f:
     val_text = f.read()
 
 val_tokens = encode(val_text)
 
 
+# ############################################################################
+# # Utility Functions
+# ############################################################################
+
+
+@torch.no_grad()
 def validate():
     input = torch.tensor([val_tokens[:-1]], device=device)
     targets = torch.tensor([val_tokens[1:]], device=device)
@@ -93,9 +105,9 @@ def validate():
 
 @torch.no_grad()
 def get_batch():
-    rnd = torch.randint(0, len(padded_encoded_lines), (batch_size,), device=device)
-    x = torch.stack([t[:-1] for t in padded_encoded_lines[rnd]])
-    y = torch.stack([t[1:] for t in padded_encoded_lines[rnd]])
+    rnd = torch.randint(0, len(input_token_lines_padded), (batch_size,), device=device)
+    x = torch.stack([t[:-1] for t in input_token_lines_padded[rnd]])
+    y = torch.stack([t[1:] for t in input_token_lines_padded[rnd]])
     return x, y
 
 
@@ -114,10 +126,12 @@ def get_loss(model):
 
 # %% -------------------------------------------------------------------------
 
+# ##########################################################################
+# # Model
+# ##########################################################################
+
 
 class Head(nn.Module):
-    """one head of self-attention"""
-
     def __init__(self, head_size):
         super().__init__()
 
@@ -130,12 +144,15 @@ class Head(nn.Module):
         # transforms an incoming embedding into a head_size dimensional vector called value
         self.value = nn.Linear(n_embeddings, head_size, bias=False)
 
-        self.register_buffer("tril", torch.tril(torch.ones(context_length, context_length)))
+        # buffer to mask attention scores for future values
+        self.register_buffer(
+            "tril", torch.tril(torch.ones(context_length, context_length))
+        )
+
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        # batch, seq_len, n_embeddings
-        _, seq_len, _ = x.shape
+        _, seq_len, _ = x.shape  # (batch, seq_len, n_embeddings)
 
         key = self.key(x)  # (batch, seq_len, head_size)
         query = self.query(x)  # (batch, seq_len, head_size)
@@ -157,7 +174,7 @@ class Head(nn.Module):
         weights = F.softmax(weights, dim=-1)  # (batch, seq_len, seq_len)
 
         # Store weights before dropout for visualization
-        self.last_weights = weights  # Shape: (batch, seq_len, seq_len)
+        self.last_weights = weights  # (batch, seq_len, seq_len)
 
         weights_after_dropout = self.dropout(weights)
 
@@ -255,11 +272,6 @@ class GPTLanguageModel(nn.Module):
 
         self.final_layer_norm = nn.LayerNorm(n_embeddings)
 
-        # self.lm_head = nn.Linear(n_embeddings, vocab_size)
-
-        # tie word embeddings
-        # self.lm_head = self.token_embedding_table.T
-
         self.apply(self._init_weights)
 
     def _init_weights(self, module):
@@ -278,12 +290,11 @@ class GPTLanguageModel(nn.Module):
         positions = torch.arange(seq_len, device=device)
         position_embeddings = self.position_embedding_table(positions)
 
-        x = token_embeddings + position_embeddings  # batch, tokens, n_embeddings
-        x = self.transformer_blocks(x)  # batch, tokens, n_embeddings
-        x = self.final_layer_norm(x)  # batch, tokens, n_embeddings
+        x = token_embeddings + position_embeddings  # (batch, tokens, n_embeddings)
+        x = self.transformer_blocks(x)  # (batch, tokens, n_embeddings)
+        x = self.final_layer_norm(x)  # (batch, tokens, n_embeddings)
 
         # TODO: in inference mode, only calc logits for last token
-        # logits = self.lm_head(x) # batch, tokens, vocab_size
         logits = x @ self.token_embedding_table.weight.T
 
         # training
@@ -297,7 +308,7 @@ class GPTLanguageModel(nn.Module):
         else:
             loss = None
 
-        # get snapshots for the first batch for visualization during inference
+        # get snapshots of the first batch for visualization during inference
         if targets is None:
             self.snapshots.embeddings = token_embeddings[0].detach().cpu().numpy()
             self.snapshots.transformer_blocks = []
@@ -327,38 +338,35 @@ class GPTLanguageModel(nn.Module):
             # transform logits to probabilities
             probs = F.softmax(logits, dim=-1)  # (batch, vocab_size)
 
-            # debug
             top_probs, top_indices = torch.topk(probs, top_k, dim=-1)
-            # print("top_probs ", top_probs.shape, top_probs)
-            # print("top_indices ", top_indices.shape, top_indices)
 
+            # debug
             token_probs.clear()
             token_probs += [
-                # squeeze out batch dimension
                 *(
                     zip(
+                        # squeeze out batch dimension
                         top_indices.squeeze(dim=0).tolist(),
                         top_probs.squeeze(dim=0).tolist(),
                     )
                 )
             ]
 
-            # top_probs = top_probs.squeeze(dim=0) # squeeze out batch dimension
-            # top_indices = top_indices.squeeze(dim=0)  # squeeze out batch dimension
-
+            # sample next token from the top k
             next_of_topk = torch.multinomial(top_probs, num_samples=1)  # (batch, 1)
-            # print("next_of_topk ", next_of_topk.shape, next_of_topk)
 
+            # get the index of the sampled token
             next = top_indices[:, next_of_topk[0]]
-            # print("next ", next.shape, next)
-
-            # sample next token
-            # next = torch.multinomial(probs, num_samples=1)  # (batch, 1)
 
             # append sampled token to the sequence
             indices = torch.cat((indices, next), dim=1)  # batch_size, seq_len+1
 
         return indices
+
+
+# #############################################################################
+# # Generate utility function with debug
+# #############################################################################
 
 
 def generate(str, max_new_tokens=1):
@@ -382,19 +390,27 @@ def generate(str, max_new_tokens=1):
     return result
 
 
+# ##############################################################################
+# # Model instanciation
+# ##############################################################################
+
 model = GPTLanguageModel()
 model.to(device)
-print(f"{model=}")
+# print(f"{model=}")
 parameter_count = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Parameters: {(parameter_count)/(1024*1024):.3f}M ({parameter_count})")
 
 
 # %% -------------------------------------------------------------------------
 
+# ##############################################################################
+# # Train the model
+# ##############################################################################
+
 learning_rate = 0.0001
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
-training_iterations = 1
+# training_iterations = 1 # debug
 training_iterations = 10000
 
 losses = []
@@ -428,17 +444,13 @@ _ = generate("i like spicy so i like")
 
 # %% -------------------------------------------------------------------------
 
-from datetime import datetime
-
-datetime_now_str = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
-filename = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
-filename = None
-
-# %% -------------------------------------------------------------------------
-
 from visualization import view_transformer_and_attention
 
 # %% -------------------------------------------------------------------------
+
+# ###########################################################################
+# # Embedding visualization
+# ###########################################################################
 
 texts = [
     # "juicy sour sweet spicy",
@@ -457,31 +469,30 @@ for text in texts:
         .numpy()
     )
 
-    # embeddings only snapshot
+    # Embeddings only snapshot
     vis = GPTLanguageModelSnapshot()
     vis.embeddings = embeddings
 
     view_transformer_and_attention(
-        vis_data=vis,  # Pass the global vis dictionary
+        snapshot=vis,
         input_token_texts=input_token_texts,
-        filename=(
-            f"transformer-{text.replace(" ", "-")}-{filename}" if filename else None
-        ),
     )
 
 # %% -------------------------------------------------------------------------
+
+# ###########################################################################
+# # Forward pass visualization
+# ###########################################################################
 
 text = "i like spicy so i like"
 print(decode(encode(text)))
 generate(text, max_new_tokens=1)
 
-# Run the model once to populate hooks (including attention weights)
 context_indices = torch.tensor([encode(text)], device=device)
-_ = model(context_indices)  # Run forward pass
+_ = model(context_indices)  # Run forward pass to pupulate snapshots
 
 input_token_texts = [itos[i] for i in encode(text)]
 view_transformer_and_attention(
-    vis_data=model.snapshots,  # Pass the global vis dictionary
+    snapshot=model.snapshots,
     input_token_texts=input_token_texts,
-    filename=f"transformer-{text.replace(" ", "-")}-{filename}" if filename else None,
 )
