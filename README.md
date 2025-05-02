@@ -2,7 +2,7 @@
 
 ![Visualization of Transformer Embeddings](docs/thumbnail.png)
 
-This repository contains the data, code, and article source for the project hosted at [https://rti.github.io/gptvis/](https://rti.github.io/gptvis/).
+Data, code, and article source for [https://rti.github.io/gptvis/](https://rti.github.io/gptvis/).
 
 ## Introduction
 
