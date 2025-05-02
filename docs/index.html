@@ -4,21 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta property="og:title" content="Understanding Transformers Using A Minimal Example" />
-    <meta property="og:description" content="Understand the inner workings of Transformer models with visualizations of internal states and the attention mechanism." />
+    <meta
+      property="og:title"
+      content="Understanding Transformers Using A Minimal Example"
+    />
+    <meta
+      property="og:description"
+      content="Understand the inner workings of Transformer models with visualizations of internal states and the attention mechanism."
+    />
     <meta property="og:type" content="article" />
     <meta property="og:url" content="https://rti.github.io/gptvis/" />
-    <meta property="og:image" content="https://rti.github.io/gptvis/thumbnail.png" />
-    <meta property="og:image:alt" content="Visualization of Transformer Embeddings" />
+    <meta
+      property="og:image"
+      content="https://rti.github.io/gptvis/thumbnail.png"
+    />
+    <meta
+      property="og:image:alt"
+      content="Visualization of Transformer Embeddings"
+    />
     <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="rtti.de | Fullstack DevOps ML" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Understanding Transformers Using A Minimal Example" />
-    <meta name="twitter:description" content="Understand the inner workings of Transformer models with visualizations of internal states and the attention mechanism." />
+    <meta
+      name="twitter:title"
+      content="Understanding Transformers Using A Minimal Example"
+    />
+    <meta
+      name="twitter:description"
+      content="Understand the inner workings of Transformer models with visualizations of internal states and the attention mechanism."
+    />
     <meta name="twitter:url" content="https://rti.github.io/gptvis/" />
-    <meta name="twitter:image" content="https://rti.github.io/gptvis/thumbnail.png" />
-    <meta name="twitter:image:alt" content="Visualization of Transformer Embeddings" />
+    <meta
+      name="twitter:image"
+      content="https://rti.github.io/gptvis/thumbnail.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Visualization of Transformer Embeddings"
+    />
 
     <script src="tailwind-4.1.5.min.js"></script>
     <script type="module" src="model-viewer-4.0.0.min.js"></script>
@@ -42,7 +66,7 @@
       </header>
 
       <article
-        class="prose lg:prose-xl max-w-none bg-white p-4 md:p-8 rounded shadow"
+        class="prose lg:prose-xl max-w-none bg-white p-4 md:p-8 rounded md:shadow"
       >
         <section class="mb-8">
           <h2 class="text-3xl font-semibold border-b pb-2 mb-4">
@@ -62,7 +86,7 @@
             weighs different input tokens. This approach offers a transparent
             view into the core operations of a Transformer.
           </p>
-          <p>
+          <p class="mb-2">
             Dataset and source code are released under the MIT license on
             <a
               class="underline text-blue-600 hover:text-blue-800"
@@ -73,7 +97,7 @@
 
           <figure class="my-4">
             <model-viewer
-              style="aspect-ratio: 16/9; width: 100%; height: 100%;"
+              style="aspect-ratio: 16/9; width: 100%; height: 100%"
               src="food-embeddings.glb"
               environment-image="legacy"
               tone-mapping="none"
@@ -98,7 +122,7 @@
 
         <section class="mb-8">
           <h2 class="text-3xl font-semibold border-b pb-2 mb-4">Setup</h2>
-          <p>
+          <p class="mb-2">
             This article employs a strategy of radical simplification across
             three key components: the training data, the tokenization method,
             and the model architecture. While significantly scaled down, this
@@ -108,13 +132,19 @@
           </p>
 
           <h3 class="text-lg font-semibold pt-2 my-2">Minimal Dataset</h3>
-          <p>
+          <p class="mb-2">
             A highly structured and minimal training dataset focused on simple
             relationships between a few concepts: fruits and tastes. Unlike vast
             text corpora, this dataset features repetitive patterns and clear
             semantic links, making it easier to observe how the model learns
             specific connections. Find the complete dataset consiting of 94
             training tokens and 7 validation tokens below.
+          </p>
+          <p class="mb-2">
+            A single, distinct sentence is held out as a validation set. This
+            sentence tests whether the model has truly learned the semantic link
+            between "chili" and "spicy" (which only appear together differently
+            in training) or if it has merely memorized the training sequences.
           </p>
           <h4 class="my-2 mb-2 font-semibold">Training Data</h4>
           <ul class="mb-2 ml-4 pl-4 border-l font-mono text-xs list-none">
@@ -138,18 +168,12 @@
             <li>i like sweet so i like apple</li>
             <li>i like juicy so i like orange</li>
           </ul>
-          <p>
-            A single, distinct sentence is held out as a validation set. This
-            sentence tests whether the model has truly learned the semantic link
-            between "chili" and "spicy" (which only appear together differently
-            in training) or if it has merely memorized the training sequences.
-          </p>
           <h4 class="my-2 mb-2 font-semibold">Validation Data</h4>
           <ul class="mb-2 ml-4 pl-4 border-l font-mono text-xs list-none">
             <li>i like spicy so i like chili</li>
           </ul>
           <h3 class="text-lg font-semibold pt-2 my-2">Basic Tokenization</h3>
-          <p>
+          <p class="mb-2">
             Tokenization is kept rudimentary. Instead of complex subword methods
             like Byte Pair Encoding (BPE), a simple regex splits text primarily
             into words. This results in a small vocabulary of just 19 unique
@@ -161,40 +185,41 @@
 
           <h4 class="my-2 mb-2 font-semibold">List of all Tokens</h4>
           <ul class="mb-2 ml-4 pl-4 border-l font-mono text-xs list-none">
-            <li class="whitespace-pre">[('is', 0),</li>
-            <li class="whitespace-pre">('the', 1),</li>
-            <li class="whitespace-pre">('orange', 2),</li>
-            <li class="whitespace-pre">('chili', 3),</li>
-            <li class="whitespace-pre">('sour', 4),</li>
-            <li class="whitespace-pre">('of', 5),</li>
-            <li class="whitespace-pre">('taste', 6),</li>
-            <li class="whitespace-pre">('apple', 7),</li>
-            <li class="whitespace-pre">('sweet', 8),</li>
-            <li class="whitespace-pre">('juicy', 9),</li>
-            <li class="whitespace-pre">('a', 10),</li>
-            <li class="whitespace-pre">('spicy', 11),</li>
-            <li class="whitespace-pre">('so', 12),</li>
-            <li class="whitespace-pre">('like', 13),</li>
-            <li class="whitespace-pre">('tastes', 14),</li>
-            <li class="whitespace-pre">('i', 15),</li>
-            <li class="whitespace-pre">('lemon', 16),</li>
-            <li class="whitespace-pre">('UNKNOWN', 17),</li>
-            <li class="whitespace-pre">('PADDING', 18)]</li>
+            <li>[('is', 0),</li>
+            <li>('the', 1),</li>
+            <li>('orange', 2),</li>
+            <li>('chili', 3),</li>
+            <li>('sour', 4),</li>
+            <li>('of', 5),</li>
+            <li>('taste', 6),</li>
+            <li>('apple', 7),</li>
+            <li>('sweet', 8),</li>
+            <li>('juicy', 9),</li>
+            <li>('a', 10),</li>
+            <li>('spicy', 11),</li>
+            <li>('so', 12),</li>
+            <li>('like', 13),</li>
+            <li>('tastes', 14),</li>
+            <li>('i', 15),</li>
+            <li>('lemon', 16),</li>
+            <li>('UNKNOWN', 17),</li>
+            <li>('PADDING', 18)]</li>
           </ul>
 
           <h3 class="text-lg font-semibold pt-2 my-2">
             Simplified Model Architecture
           </h3>
-          <p>
-            The Transformer model itself is drastically scaled down compared to
-            typical Large Language Models (LLMs). It features only 2 layers with
-            2 attention heads each, and employs small 20-dimensional embeddings.
-            Furthermore, it uses tied word embeddings (the same matrix for input
-            lookup and output prediction, also used in Google's Gemma), reducing
-            parameters and linking input/output representations in the same
-            vector space which is helpful for visualization. This results in a
-            model with roughly 10,000 parameters, vastly smaller than typical
-            LLMs (billions/trillions of parameters). This extreme simplification
+          <p class="mb-2">
+            The Transformer model itself is a decoder-only model drastically
+            scaled down compared to typical Large Language Models (LLMs). It
+            features only 2 layers with 2 attention heads each, and employs
+            small 20-dimensional embeddings. Furthermore, it uses tied word
+            embeddings (the same matrix for input lookup and output prediction,
+            also used in Google's Gemma), reducing parameters and linking
+            input/output representations in the same vector space which is
+            helpful for visualization. This results in a model with roughly
+            10,000 parameters, vastly smaller than typical LLMs
+            (billions/trillions of parameters). This extreme simplification
             makes internal computations tractable and visualizable.
           </p>
 
@@ -220,22 +245,23 @@
             Visualizing the Internals
           </h2>
           <p class="mb-2">
-            While practical Transformer implementations operate on
-            multi-dimensional tensors for efficiency (handling batches of
-            sequences and processing entire context windows in parallel), we can
-            simplify our conceptual understanding.
+            While Transformer implementations operate on multi-dimensional
+            tensors for efficiency in order to handle batches of sequences and
+            processing entire context windows in parallel, we can simplify our
+            conceptual understanding. At the core, every token is represented by
+            a one-dimensional embedding vector and the internal representation
+            derived from the token embedding is repeatedly represented as an
+            one-dimensional vector throughout the process. This property can be
+            used for visualization.
           </p>
 
           <h3 class="text-lg font-semibold pt-2 my-2">Token Embeddings</h3>
-          <p>
-            At its core, the process begins by transforming each input token
-            into a one-dimensional embedding vector – a list of numbers
-            representing the token's initial semantic meaning. Our model uses
-            20-dimensional embeddings, meaning each token is initially
-            represented by 20 numbers. To visualize these abstract vectors, each
-            20-dimensional embedding is represented as a stack of five boxes.
-            Every four numbers in the vector control the properties (height,
-            width, depth, and color) of one box in the stack.
+          <p class="mb-2">
+            Our model uses 20-dimensional embeddings, meaning each token is
+            initially represented by 20 numbers. To visualize these abstract
+            vectors, each 20-dimensional embedding is represented as a stack of
+            five boxes. Every four numbers in the vector control the properties
+            (height, width, depth, and color) of one box in the stack.
           </p>
 
           <p class="mb-2">
@@ -243,17 +269,21 @@
             "sweet", "spicy"), one can observe the learned 20 parameters for
             each. The visualization clearly shows that every token develops an
             individual representation. At the same time, these taste tokens also
-            share some visual properties in their embeddings, such as the lowest
-            box being light-colored, tall, and relatively narrow, while the
-            middle boxes tend towards darker colors on the scale. This suggests
-            the model is capturing both unique aspects of each taste and common
-            features shared by the concept of 'taste' itself within this limited
-            context.
+            share some visual properties in their embeddings, such as the lower
+            boxes being light-colored, while the upper boxes use stronger
+            colors. Also, the lowest box appears rather high and narrow. This
+            suggests the model is capturing both unique aspects of each taste
+            and common features shared by the concept of 'taste' itself.
+          </p>
+
+          <p class="mb-2">
+            These visualizations show the distinct starting points for each
+            token before they interact within the Transformer layers.
           </p>
 
           <figure class="my-4">
             <model-viewer
-              style="aspect-ratio: 16/9; width: 100%; height: 100%;"
+              style="aspect-ratio: 16/9; width: 100%; height: 100%"
               src="taste-embeddings.glb"
               field-of-view="30deg"
               disable-zoom="true"
@@ -270,39 +300,37 @@
               alt="some visualization"
             ></model-viewer>
             <figcaption class="text-center text-sm mt-2">
-              Learned embeddings for taste tokens ("juicy", "sour", "sweet",
-              "spicy"). While each token has a unique 20-dimensional
-              representation (stack of cubes), shared visual features (e.g., the
-              light, tall lowest box) suggest the model captures common
-              properties of 'taste' alongside individual characteristics.
+              Learned 20-dimensional embeddings represented as stack of boxes
+              for taste tokens ("juicy", "sour", "sweet", "spicy"). While each
+              token has a unique appearance, shared visual features (e.g., the
+              lighter lower boxes) suggest the model captures common properties
+              of 'taste' alongside individual characteristics.
             </figcaption>
           </figure>
 
-          These visualizations show the distinct starting points for each token
-          before they interact within the Transformer layers.
-
-          <h3 class="text-lg font-semibold pt-2 my-2">Transformer Layers</h3>
+          <h3 class="text-lg font-semibold pt-2 my-2">Forward Pass</h3>
           <p class="mb-2">
-            A Transformer model processes a list of tokens in order to generate
-            the next token. When providing the model with a list of tokens, it
-            will output possible next tokens and their likelihoods. As described
-            above, our model succeeds on the validation dataset, meaning it
-            completes the sequence "<span class="font-mono text-xs"
+            When providing the model with a list of tokens, it will output
+            possible next tokens and their likelihoods. As described above, our
+            model succeeds on the validation dataset, meaning it completes the
+            sequence "<span class="font-mono text-xs"
               >i like spicy so i like</span
             >" with the token "<span class="font-mono text-xs">chili</span>".
             Let's look at what happens inside the model when it processes this
-            sequence.
+            sequence in the forward pass.
           </p>
 
           <p class="mb-2">
-            In a first step, all input tokens are embedded. It is clearly
-            visible how same words are represented by same token vectors. The
-            "<span class="font-mono text-xs">spicy</span>" embedding shown above
-            is also recognizable.
+            In a first step, all input tokens are embedded. Examine their
+            visualization below. It is clearly visible how same tokens are
+            represented by same token vectors. Also, the "<span
+              class="font-mono text-xs"
+              >spicy</span
+            >" embedding is the same as shown above.
           </p>
           <figure class="my-4">
             <model-viewer
-              style="aspect-ratio: 16/6; width: 100%; height: 100%;"
+              style="aspect-ratio: 16/6; width: 100%; height: 100%"
               interaction-prompt="none"
               field-of-view="20deg"
               disable-zoom="true"
@@ -329,25 +357,12 @@
             Transformer's layers sequentially. Our model utilizes two such
             layers. Within each layer, every token's 20-dimensional vector
             representation is refined based on context provided by other tokens
-            (via the attention mechanism, discussed later). This process repeats
-            for all layers. Crucially, the final representation of the
-            <em>last</em> input token (in this case, the second "<span
-              class="font-mono text-xs"
-              >like</span
-            >") after passing through all layers is used to predict the
-            <em>next</em> token in the sequence. Because the model confidently
-            predicts "<span class="font-mono text-xs">chili</span>" should
-            follow this sequence, the vector representation for the final "<span
-              class="font-mono text-xs"
-              >like</span
-            >" token, visualized as the rightmost row in the last layer
-            "Transformer Layer 2", evolves to closely resemble the embedding
-            vector for "<span class="font-mono text-xs">chili</span>".
+            (via the attention mechanism, discussed later).
           </p>
 
           <figure class="my-4">
             <model-viewer
-              style="aspect-ratio: 4/2; width: 100%; height: 100%;"
+              style="aspect-ratio: 4/2; width: 100%; height: 100%"
               interaction-prompt="none"
               field-of-view="26deg"
               disable-zoom="true"
@@ -365,24 +380,35 @@
             ></model-viewer>
             <figcaption class="text-center text-sm mt-2">
               Visualization of the token vectors progressing through the initial
-              embedding layer and two Transformer layers. Each token's vector
-              (stack of boxes) is transformed at each layer. The final vector
-              for the last token ("like") in the top layer represents the
-              model's prediction for the next token.
+              embedding layer and two Transformer layers. Each token's
+              representation is transformed at each layer and in between layers
+              repreatedly represented as 20 dimensional vectors.
             </figcaption>
           </figure>
 
           <p class="mb-2">
-            Comparing the vector representation of the final prediction (the
-            rightmost stack in "Transformer Layer 2") with the original
-            embedding of "<span class="font-mono text-xs">chili</span>" (shown
-            below) reveals a visual similarity. Both box stacks share key
-            features: a very similar base box, a narrow second box, a flat and
-            light-colored middle box, a tall and light fourth box, and a small,
-            light top box. This close resemblance in their visual structure
-            clearly demonstrates how the model's internal state for the final
-            input token has evolved through the layers to closely match the
-            representation of the predicted next token, "<span
+            Crucially, the final representation of the last input token (in this
+            case, the second "<span class="font-mono text-xs">like</span>" on
+            the right side) after passing through all layers (from front to
+            back) is used to predict the next token in the sequence. Because the
+            model confidently predicts "<span class="font-mono text-xs"
+              >chili</span
+            >" should follow this sequence, the vector representation for the
+            final "<span class="font-mono text-xs">like</span>" token evolves to
+            closely resemble the embedding vector for "<span
+              class="font-mono text-xs"
+              >chili</span
+            >" (shown below) in Transformer Layer 2.
+          </p>
+
+          <p class="mb-2">
+            Comparing the vectors reveals a visual similarity. Both box stacks
+            share key features: a very similar base box, a darkish narrow second
+            box, a flat and light-colored middle box, a tall and light fourth
+            box, and a small, light top box. This close resemblance in their
+            visual structure clearly demonstrates how the model's internal state
+            for the final input token has evolved through the layers to closely
+            match the representation of the predicted next token, "<span
               class="font-mono text-xs"
               >chili</span
             >".
@@ -390,7 +416,7 @@
 
           <figure class="my-4">
             <model-viewer
-              style="aspect-ratio: 16/9; width: 100%; height: 100%;"
+              style="aspect-ratio: 16/9; width: 100%; height: 100%"
               src="food-embeddings.glb"
               field-of-view="30deg"
               disable-zoom="true"
@@ -415,6 +441,13 @@
             </figcaption>
           </figure>
 
+          <p class="mb-2">
+            Input and output token embeddings are only identical, because the
+            model shares the learned embedding matrix of the initial layer with
+            the final layer producing the logits. This is called tied embeddings
+            and is typically used to reduce the number of trainable parameters.
+          </p>
+
           <h3 class="text-lg font-semibold pt-2 my-2">
             Attention in Transformer Layers
           </h3>
@@ -422,11 +455,10 @@
           <p class="mb-2">
             Within each Transformer layer, the transformation of a token's
             vector representation isn't solely based on the token itself. The
-            crucial "self-attention" mechanism allows each token to look at
-            other tokens within the sequence (specifically, preceding tokens in
-            a standard decoder setup like ours) and weigh their importance. This
-            means that as a token's vector passes through a layer, it's updated
-            not just by its own information but also by incorporating relevant
+            crucial attention mechanism allows each token to look at preceding
+            tokens within the sequence and weigh their importance. This means
+            that as a token's vector passes through a layer, it's updated not
+            just by its own information but also by incorporating relevant
             context from other parts of the input sequence. This ability to
             selectively focus on and integrate information from different
             positions is what gives Transformers their power in understanding
@@ -441,7 +473,7 @@
 
           <figure class="my-4">
             <model-viewer
-              style="aspect-ratio: 4/2; width: 100%; height: 100%;"
+              style="aspect-ratio: 4/2; width: 100%; height: 100%"
               interaction-prompt="none"
               field-of-view="30deg"
               disable-zoom="true"
@@ -458,16 +490,16 @@
               alt="some visualization"
             ></model-viewer>
             <figcaption class="text-center text-sm mt-2">
-              Visualization including attention connections (lines) between
-              tokens within each Transformer layer. Different colors represent
-              different attention heads. Only connections with weights above a
-              threshold are shown.
+              Visualization including attention connections (colored lines)
+              between tokens within each Transformer layer. Different colors
+              represent different attention heads. Only connections with weights
+              above a threshold are shown.
             </figcaption>
+
             <p class="my-2">
-              Observing the attention patterns (colored lines) reveals
-              interesting details. In the first Transformer layer (middle row),
-              the earliest significant attention (above a threshold) occurs when
-              processing the third token, "<span class="font-mono text-xs"
+              In Transformer layer 1 (middle row), the earliest visible
+              attention occurs when processing the third token, "<span
+                class="font-mono text-xs"
                 >spicy</span
               >". It attends back to the preceding "<span
                 class="font-mono text-xs"
@@ -479,8 +511,7 @@
               (e.g., "<span class="font-mono text-xs">chili tastes spicy</span
               >", "<span class="font-mono text-xs">spicy is a chili</span>",
               "<span class="font-mono text-xs">chili is so spicy</span>"). To
-              correctly interpret or predict based on "<span
-                class="font-mono text-xs"
+              correctly predict based on "<span class="font-mono text-xs"
                 >spicy</span
               >", the model benefits from looking at the preceding context. In
               contrast, the first token "<span class="font-mono text-xs">i</span
@@ -494,13 +525,14 @@
               >". In our dataset, "<span class="font-mono text-xs">like</span>"
               consistently follows "<span class="font-mono text-xs">i</span>"
               but can precede various tastes ("<span class="font-mono text-xs"
-                >like spicy</span
-              >", "<span class="font-mono text-xs">like sweet</span>", etc.).
+                >spicy</span
+              >", "<span class="font-mono text-xs">sweet</span>", etc.).
               Therefore, knowing that "<span class="font-mono text-xs">i</span>"
               came before "<span class="font-mono text-xs">like</span>" provides
               little predictive value for what taste might follow, so the
               attention weight remains low.
             </p>
+
             <p class="my-2">
               The next token in the sequence is "<span class="font-mono text-xs"
                 >so</span
@@ -514,30 +546,26 @@
                 class="font-mono text-xs"
                 >spicy</span
               >" is necessary because "<span class="font-mono text-xs">so</span
-              >" appears before different subsequent tokens in the training data
-              (e.g., "<span class="font-mono text-xs">so i like</span>", "<span
-                class="font-mono text-xs"
-                >so sour</span
-              >", "<span class="font-mono text-xs">so sweet</span>"), making the
-              immediate preceding context crucial. The attention back to the
-              initial "<span class="font-mono text-xs">i</span>" might help
+              >" appears in different contexts in the training data (e.g.,
+              "<span class="font-mono text-xs">i like sour so i like</span>" and
+              "<span class="font-mono text-xs">lemon is so sour</span>"), making
+              the immediate preceding context crucial. The attention back to the
+              initial "<span class="font-mono text-xs">i</span>" further helps
               establish the overall sentence structure ("<span
                 class="font-mono text-xs"
                 >i like ... so i like ...</span
-              >") which is common in the training data.
+              >").
             </p>
             <p class="my-2">
               Finally, let's examine the last token in the input sequence, the
-              second "<span class="font-mono text-xs">like</span>". In both
-              Transformer Layer 1 (middle row) and Transformer Layer 2 (back
-              row), this token shows strong attention (indicated by lines)
-              directed towards the token "<span class="font-mono text-xs"
-                >spicy</span
-              >". This focus is crucial for the model's prediction. The training
-              data contains similar sentences like "<span
-                class="font-mono text-xs"
+              second "<span class="font-mono text-xs">like</span>" on the right.
+              In both Transformer Layer 1 (middle row) and Transformer Layer 2
+              (back row), this token shows strong attention directed towards the
+              token "<span class="font-mono text-xs">spicy</span>". This focus
+              is crucial for the model's prediction. The training data contains
+              similar sentences such as "<span class="font-mono text-xs"
                 >i like sweet so i like apple</span
-              >" or "<span class="font-mono text-xs"
+              >" and "<span class="font-mono text-xs"
                 >i like sour so i like lemon</span
               >". The key piece of information that distinguishes the current
               sequence and points towards "<span class="font-mono text-xs"
@@ -546,8 +574,7 @@
                 class="font-mono text-xs"
                 >spicy</span
               >". The attention mechanism correctly identifies and utilizes this
-              critical context from earlier in the sequence to inform the final
-              prediction.
+              critical context in the sequence to inform the final prediction.
             </p>
           </figure>
         </section>
@@ -563,10 +590,10 @@
             layers. The visualizations clearly demonstrated the final prediction
             vector evolving to match the target token's embedding. Furthermore,
             examining the attention mechanism revealed how the model selectively
-            focuses on relevant prior tokens to inform its processing and
-            predictions, successfully generalizing even from a minimal dataset.
-            While highly simplified, this approach offers valuable intuition
-            into the fundamental processes of information flow and contextual
+            focuses on relevant prior tokens to inform its predictions,
+            successfully generalizing even from a minimal dataset. While highly
+            simplified, this approach offers valuable intuition into the
+            fundamental processes of information flow and contextual
             understanding within Transformer models.
           </p>
         </section>
