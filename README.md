@@ -51,5 +51,5 @@ This script will:
 2. Define and initialize the simplified GPT model.
 3. Train the model for a specified number of iterations.
 4. Print validation loss and generate example text completions.
-5. Generate 3D visualizations of token embeddings and the forward pass using PyVista, saving them as `.glb` files (used in the article) and potentially displaying them or saving screenshots.
+5. Generate 3D visualizations of token embeddings and the forward pass using PyVista and saving them as `.gltf` files used in the article.
 
