@@ -12,20 +12,8 @@ def visualize_vector_as_cubes(
     origin=(0.0, 0.0, 0.0),
     neutral_fill_value=0.0,
     label=None,
-    min_scale=None,
-    max_scale=None,
 ):
-    if not isinstance(vector, np.ndarray):
-        raise TypeError(f"Input vector must be a NumPy array, got {type(vector)}")
-    if vector.ndim != 1:
-        raise ValueError(
-            f"Input vector must be 1-dimensional, got {vector.ndim} dimensions."
-        )
-
     vector_size = vector.shape[0]
-    if vector_size == 0:
-        raise ValueError("Input vector is empty. Nothing to visualize.")
-
     elements_per_cube = 4
     remainder = vector_size % elements_per_cube
     padded_vector = vector
@@ -41,32 +29,18 @@ def visualize_vector_as_cubes(
     scale_data = data[:, :3]
     color_data = data[:, 3]
 
-    if min_scale is None or max_scale is None:
-        min_scale, max_scale = scale_data.min(), scale_data.max()
+    min_scale, max_scale = scale_data.min(), scale_data.max()
 
-    # print("#####", min_scale, max_scale)
-
-    if max_scale == min_scale:
-        normalized_scales = np.full_like(
-            scale_data, base_scale + scale_factor / 2.0
-        )  # Mid-range scale
-    else:
-        # Normalize to [0, 1] first
-        norm_01 = (scale_data - min_scale) / (max_scale - min_scale)
-        # Then scale to [base_scale, base_scale + scale_factor]
-        normalized_scales = base_scale + norm_01 * scale_factor
-        # print(normalized_scales)
+    # Normalize to [0, 1] first
+    norm_01 = (scale_data - min_scale) / (max_scale - min_scale)
+    # Then scale to [base_scale, base_scale + scale_factor]
+    normalized_scales = base_scale + norm_01 * scale_factor
 
     # Normalize color data to [0, 1]
     min_color, max_color = color_data.min(), color_data.max()
-    print(f"{min_color} {max_color}")
-    if max_color == min_color:
-        normalized_colors = np.full_like(color_data, 0.5)  # Mid-range grey
-    else:
-        normalized_colors = (color_data - min_color) / (max_color - min_color)
+    normalized_colors = (color_data - min_color) / (max_color - min_color)
 
     meshes = []
-
     z_cumulative = 0
 
     for i in range(num_cubes):
@@ -77,7 +51,6 @@ def visualize_vector_as_cubes(
         center_y = origin[1] + 0
         center_z = origin[2] + z_cumulative + (scale_z / 2.0)
 
-        # Create the cube
         cube = pv.Cube(
             center=(center_x, center_y, center_z),
             x_length=scale_x,
@@ -112,10 +85,8 @@ def visualize_vector_as_cubes(
     return meshes
 
 
-def view_transformer_and_attention(
-    snapshot, input_token_texts, filename=None, attention_threshold=0.5
-):
-    plotter = pv.Plotter(off_screen=(filename is not None), window_size=(1920, 1080))
+def view_transformer_and_attention(snapshot, input_token_texts):
+    plotter = pv.Plotter(window_size=(1920, 1080))
     if plotter.camera is None:
         raise ValueError("plotter has no camera")
 
@@ -125,19 +96,7 @@ def view_transformer_and_attention(
 
     x_spacing = 3.5  # Horizontal space between tokens
     y_spacing = 5.0  # Vertical space between layers
-    attention_head_offset = 0.4  # Small offset for attention lines of different heads
     plotter_y_offset = 0
-
-    scale_data = []
-    for i in snapshot.embeddings:
-        scale_data += [*i]
-    for i in snapshot.transformer_blocks:
-        for j in i:
-            scale_data += [*j]
-    # print(scale_data)
-    # min_scale = -0.5
-    # max_scale = 0.5
-    # print(min_scale, max_scale)
 
     if snapshot.embeddings is not None and len(snapshot.embeddings) > 0:
         pos_x = 0
@@ -148,8 +107,6 @@ def view_transformer_and_attention(
                 label=input_token_texts[i],
                 origin=(pos_x, plotter_y_offset, 0.0),
                 plotter=plotter,
-                # min_scale=min_scale,
-                # max_scale=max_scale,
             )
             pos_x += x_spacing
 
@@ -164,7 +121,6 @@ def view_transformer_and_attention(
             ),
             color=cmap(0),
         )
-
         plotter_y_offset += y_spacing
 
     token_positions = []
@@ -180,34 +136,33 @@ def view_transformer_and_attention(
                 cmap=cmap,
                 plotter=plotter,
                 origin=token_position,
-                # min_scale=min_scale,
-                # max_scale=max_scale,
             )
             # Add arrow pointing upwards from below the token
             arrow_start = (
                 token_position[0],
                 token_position[1] - y_spacing,
                 0.24,
-            )  # Start below the cubes
+            )
 
             arrow = pv.Arrow(
-                    start=arrow_start,
-                    direction=(0, 1, 0),
-                    scale=y_spacing * 0.95,  # Length towards the next layer
-                    shaft_radius=0.02,
-                    tip_length=0.1,
-                    tip_radius=0.05,
-                )
+                start=arrow_start,
+                direction=(0, 1, 0),
+                scale=y_spacing * 0.95,  # Length towards the next layer
+                shaft_radius=0.02,
+                tip_length=0.1,
+                tip_radius=0.05,
+            )
 
             arrow = arrow.scale([1.0, 1.0, 0.01])
-
 
             plotter.add_mesh(
                 arrow,
                 color=cmap(0.9999),
             )
+
             layer_token_positions.append(token_position)
             pos_x += x_spacing
+
         token_positions.append(layer_token_positions)
 
         label_pos = (pos_x - x_spacing + 2.5, plotter_y_offset, 0)
@@ -228,27 +183,15 @@ def view_transformer_and_attention(
         num_heads = len(attention_data)
 
         for head_idx, attention_matrix in enumerate(attention_data):
-            for i in range(
-                len(layer_token_positions)
-            ):  # Query token (receiving attention)
-                for j in range(
-                    len(layer_token_positions)
-                ):  # Key token (providing attention)
-                    # Causal mask check: only draw if query attends to key or itself (j <= i)
-                    if j > i:
-                        continue
-
-                    # Do not draw self-attention
-                    if j == i:
+            for i in range(len(layer_token_positions)):
+                for j in range(len(layer_token_positions)):
+                    if j >= i:
                         continue
 
                     weight = attention_matrix[i, j]
 
-                    if weight > attention_threshold:
-                        # Start point (key token j) with offset
+                    if weight > 0.5:  # attention_threshold
                         start_pos = list(layer_token_positions[j])
-
-                        # End point (query token i) with offset
                         end_pos = list(layer_token_positions[i])
 
                         mid_pos = [
@@ -278,11 +221,5 @@ def view_transformer_and_attention(
     plotter.camera.elevation = 25
     plotter.reset_camera(plotter, bounds=plotter.bounds)
     plotter.camera.zoom(1.4)
-
     plotter.export_gltf("scene.gltf")
-
-    if filename:
-        plotter.screenshot(filename)
-        plotter.close()
-    else:
-        plotter.show()
+    plotter.show()
