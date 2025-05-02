@@ -12,7 +12,7 @@ print(f"{device=}")
 # %% -------------------------------------------------------------------------
 
 batch_size = 64
-block_size = 12  # context length
+context_length = 12
 n_embeddings = 20
 n_layers = 2
 n_heads = 2
@@ -57,15 +57,15 @@ max_line_length = (
     max([len(line) for line in encoded_lines]) + 1
 )  # ensure every one is padded
 
-if max_line_length > block_size:
+if max_line_length > context_length:
     for i in range(10):
-        print("\n\n\n************** block_size too small *************\n\n\n\n")
+        print("\n\n\n************** context length too small *************\n\n\n\n")
 
 padded_encoded_lines = torch.stack(
     [
         F.pad(
             torch.tensor(line, device=device),
-            (0, block_size - len(line)),
+            (0, context_length - len(line)),
             value=stoi[pad_token_string],
         )
         for line in encoded_lines
@@ -130,7 +130,7 @@ class Head(nn.Module):
         # transforms an incoming embedding into a head_size dimensional vector called value
         self.value = nn.Linear(n_embeddings, head_size, bias=False)
 
-        self.register_buffer("tril", torch.tril(torch.ones(block_size, block_size)))
+        self.register_buffer("tril", torch.tril(torch.ones(context_length, context_length)))
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -241,7 +241,7 @@ class GPTLanguageModel(nn.Module):
         self.snapshots = GPTLanguageModelSnapshot()
 
         self.token_embedding_table = nn.Embedding(vocab_size, n_embeddings)
-        self.position_embedding_table = nn.Embedding(block_size, n_embeddings)
+        self.position_embedding_table = nn.Embedding(context_length, n_embeddings)
 
         self.transformer_blocks = nn.Sequential(
             *[
@@ -315,8 +315,8 @@ class GPTLanguageModel(nn.Module):
         # number of new tokens times do
         for _ in range(max_new_tokens):
 
-            # crop the current context to max context size aka block_size
-            cropped_context = indices[:, -block_size:]
+            # crop the current context to max context size
+            cropped_context = indices[:, -context_length:]
 
             # forward the model on the context
             logits, _ = self(cropped_context)
