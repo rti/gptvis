@@ -8,8 +8,9 @@ wheels/
 
 # Virtual environments
 .venv
-.venv2
 
 # Dir env
 .direnv
+
+# Aider.chat files
 .aider*
