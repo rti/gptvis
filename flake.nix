@@ -3,6 +3,7 @@
 
   outputs = { nixpkgs, ... }:
     let
+      # TODO: other systems
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system;
@@ -20,13 +21,12 @@
               p.pip
               p.matplotlib
               p.datasets
-              # p.ipykernel
             ]))
           ];
 
         shellHook = ''
           echo
-          ${pkgs.figlet}/bin/figlet "andrej-gpt"
+          ${pkgs.figlet}/bin/figlet "gptvis"
 
           echo "$ python --version"
           python --version
